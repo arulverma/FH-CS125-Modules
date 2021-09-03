@@ -1,3 +1,4 @@
+// Code makes a set of cards and a deck. Then distributes cards to both the player and the computer to view. This is the base for the code in Module 6
 package application;
 
 import application.CardIdentity.Suit;
