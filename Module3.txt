@@ -1,0 +1,395 @@
+import java.lang.Math;
+
+interface BarcodeIO {
+  public boolean scan(BarcodeImage bc);
+  public boolean readText(String text);
+  public boolean generateImageFromText();
+  public boolean translateImageToText();
+  public void displayTextToConsole();
+  public void displayImageToConsole();
+}
+
+class BarcodeImage implements Cloneable{
+  public static final int MAX_HEIGHT = 30;    
+  public static final int MAX_WIDTH = 65;
+  private boolean[][] imageData;
+
+  public BarcodeImage()
+  {
+    imageData = new boolean[MAX_HEIGHT][MAX_WIDTH];
+    for(int i = 0; i < MAX_HEIGHT; i++)
+    {
+      for(int j = 0; j < MAX_WIDTH; j++)
+      {
+        imageData[i][j] = false;
+      }
+    }
+  }
+
+
+  public BarcodeImage(String[] strData) //This constructor uses calculation to find the bottom left spot of the array to insert the *. It may need a try catch incase the data given is bigger than the max.
+  {
+    imageData = new boolean[MAX_HEIGHT][MAX_WIDTH];
+    for(int i = 0; i < MAX_HEIGHT; i++)
+    {
+      for(int j = 0; j < MAX_WIDTH; j++)
+      {
+        imageData[i][j] = false;
+      }
+    }
+
+    for(int i = 0; i < strData.length; i++)
+    {
+      for(int j = 0; j < strData[i].length(); j++)
+      {
+        if(strData[i].charAt(j) == '*')
+        {
+          this.imageData[MAX_HEIGHT + 1 - strData.length + i][j-1] = true;
+        }
+        else if(strData[i].charAt(j) == ' ')
+          {this.imageData[MAX_HEIGHT - strData.length + i + 1][j-1] = false;}
+      }
+    }
+  }
+  
+  public boolean getPixel(int row, int col)
+  {
+    boolean retval;
+    try{
+      retval = this.imageData[row][col];
+    }
+    catch(ArrayIndexOutOfBoundsException e)
+    {
+      retval = false;
+    }
+    return retval;
+  } 
+  public boolean setPixel(int row, int col, boolean value)
+  {
+    if(row < 0 || row > MAX_HEIGHT){return false;}
+    if(col < 0 || col > MAX_WIDTH){return false;}
+    this.imageData[row][col] = value;
+    return true;
+  }
+  
+  @Override
+  public Object clone() //we override clone from cloneable. Instead of catching the error outside when the function is called, it is easier to catch it here and to return null. However this is impossible as we have BarcodeImage implementing Cloneable
+  {
+    BarcodeImage im;
+    try{
+      im = (BarcodeImage) super.clone();
+      return im;
+    }
+    catch(CloneNotSupportedException e)
+    {
+      return null;
+    }
+  }
+    
+}
+
+class DataMatrix implements BarcodeIO{
+
+  public static final char BLACK_CHAR = '*';
+  public static final char WHITE_CHAR = ' ';  
+  
+  
+  private BarcodeImage image;
+  private String text;
+  private int actualWidth;
+  private int actualHeight;
+
+
+  public DataMatrix()
+  {
+    this.text = "undefined";
+    this.actualWidth = 0;
+    this.actualHeight = 0;
+    this.image = new BarcodeImage();
+  }
+
+  public boolean scan(BarcodeImage bc)
+  {
+    this.image = (BarcodeImage) bc.clone();
+    int num = 0;
+    while(this.image.getPixel(29,num) == true)
+    {
+      num++;
+    }
+    //System.out.println(num);
+    this.actualWidth = num;
+
+    num = 0;
+    while(this.image.getPixel(29-num,0) == true)
+    {
+      num++;
+    }
+    //System.out.println(num);
+    this.actualHeight = num;
+
+    return true;
+  }
+
+  public boolean readText(String text)
+  {
+    this.text = text;
+    return true;
+  }
+
+  public DataMatrix(BarcodeImage image)
+  {
+    this.text = "undefined";
+    this.actualWidth = 0;
+    this.actualHeight = 0;
+    this.scan(image);
+  }
+
+  public DataMatrix(String text)
+  {
+    this.readText(text);
+    this.actualWidth = 0;
+    this.actualHeight = 0;
+    this.image = new BarcodeImage();
+  }
+
+  public boolean generateImageFromText() //this is the most complicated function in the code. It clears the array at first to prevent old arrays from overwriting the new one. Then we convert the text to binary and get the image. Finally, we add the frame starting with the left and top, then bottom, then right. The right takes the least priority in the frame as shown by the good sample to look at, so we know we can have cases of double star or double space.
+  {
+    
+
+    for(int i = 0; i < BarcodeImage.MAX_HEIGHT; i++)
+    {
+      for(int j = 0; j < BarcodeImage.MAX_WIDTH; j++)
+      {
+        this.image.setPixel(i,j,false);
+      }
+    }
+
+    char[] y = this.text.toCharArray();
+    this.actualWidth = y.length + 2;
+
+    int first = 50;
+    for(int j = 0; j < y.length; j++)
+    {
+      char z = y[j];
+      int num = z;
+
+      for(int i = 28; i >= 0; i--)
+      {
+        if(num / Math.pow(2,i) > 1)
+        {
+          if(28-i < first) 
+          {
+            first = 28 - i;
+          }
+          num = num % (int)Math.pow(2,i);
+          this.image.setPixel(28 - i, j+1 , true);
+        }
+        else{
+          this.image.setPixel(28 - i, j+1 , false);
+        }
+      }
+    }
+
+    first--;
+    this.actualHeight = 30 - first;
+
+    for(int i = 29; i >= first; i--)
+    {
+      if(i%2 == 1){this.image.setPixel(i,y.length+1, true);}
+    }
+
+    for(int j = 0; j < y.length + 2; j++)
+    {
+      this.image.setPixel(29, j, true);
+      if(j%2 == 0){this.image.setPixel(first, j, true);}
+      else{this.image.setPixel(first, j, false);}
+    }
+
+    for(int i = first; i < 29; i++)
+    {
+      this.image.setPixel(i, 0 , true);
+    }
+
+    
+
+    return true;
+  }
+
+  public boolean translateImageToText() //This is less complex than its opposite counterpart as it can be done with a manipulation of powers of two pretty easily
+  {
+    String msg = ""; 
+    for(int j = 1; j < actualWidth-1; j++)
+    {
+      int value = 0;
+      for(int i = 1; i < actualHeight-2; i++)
+      {
+        if(this.image.getPixel(BarcodeImage.MAX_HEIGHT - 1 - i,j) == true)
+        {
+          value += Math.pow(2,i-1);
+        }
+      }
+      msg += Character.toString((char)value);
+    }
+    this.text = msg;
+    return true;
+  }
+
+  public void displayTextToConsole()
+  {
+    System.out.println(this.text);
+    return;
+  }
+
+  public void displayImageToConsole()
+  {
+    for(int i = this.actualHeight; i > 0; i--)
+    {
+      String line = "";
+      for(int j = 0; j < this.actualWidth; j++)
+      {
+        if(this.image.getPixel(BarcodeImage.MAX_HEIGHT - i,j) == true)
+        {
+          line += "*";
+        }
+        else if(this.image.getPixel(BarcodeImage.MAX_HEIGHT - i,j) == false)
+        {
+          line += " ";
+        }
+      }
+      System.out.println(line);
+    }
+  }
+
+  public int getaW()
+  {
+    return this.actualWidth;
+  }
+
+  public int getaH()
+  {
+    return this.actualHeight;
+  }
+
+  private int computeSignalWidth() 
+  {
+    int num = 0;
+      while(this.image.getPixel(29,num) == true)
+      {
+        num++;
+      }
+      this.actualWidth = num;
+      return num;
+  }
+
+  private int computeSignalHeight()
+  {
+    int num = 0;
+      while(this.image.getPixel(29-num,0) == true)
+      {
+        num++;
+      }
+      this.actualHeight = num;
+      return num;
+  }
+}
+
+class Main {
+  public static void main(String[] args)
+   {
+      String[] sImageIn =
+      {
+         "------------------------------",
+         "|* * * * * * * * * * * * * * *|",
+         "|*                            |",
+         "|**** *** *******  ***** *****|",
+         "|* **************** ********* |",
+         "|** *  *   * *      *  * * * *|",
+         "|***          **          * * |",
+         "|* **   *  ** ***  * * * **  *|",
+         "|* *   *   * **    **    **** |",
+         "|**** * * ******** * **  ** **|",
+         "|*****************************|",
+         "------------------------------"
+      };      
+            
+      String[] sImageIn_2 = 
+      {
+            "-----------------------------",
+            "|* * * * * * * * * * * * * * |",
+            "|*                          *|",
+            "|*** ** ******** ** ***** ** |",
+            "|*  **** ***************** **|",
+            "|* *  *    *      *  *  *  * |",
+            "|*       ** **** *          *|",
+            "|*    * ****  **    * * * ** |",
+            "|***    ***       * **    * *|",
+            "|*** *   **  *   ** * **   * |",
+            "|****************************|",
+            "-----------------------------"
+            
+      }; //missing a letter n at the end
+     
+      BarcodeImage bc = new BarcodeImage(sImageIn);
+
+      DataMatrix dm = new DataMatrix(bc);
+      // First secret message
+      dm.translateImageToText();
+      dm.displayTextToConsole();
+      dm.displayImageToConsole();
+      
+      // second secret message
+      bc = new BarcodeImage(sImageIn_2);
+      dm.scan(bc);
+      dm.translateImageToText();
+      dm.displayTextToConsole();
+      dm.displayImageToConsole();
+      
+      // create your own message
+      dm.readText("What a great resume builder this is!");
+      dm.generateImageFromText();
+      dm.displayTextToConsole();
+      dm.displayImageToConsole();
+      
+   }   
+}
+
+//----------------------------------------------
+
+/*
+Results after running: 
+
+You are awesome! Great work
+* * * * * * * * * * * * * * *
+*                            
+**** *** *******  ***** *****
+* **************** ********* 
+** *  *   * *      *  * * * *
+***          **          * * 
+* **   *  ** ***  * * * **  *
+* *   *   * **    **    **** 
+**** * * ******** * **  ** **
+*****************************
+CS at Foothill is great Fu
+* * * * * * * * * * * * * * 
+*                          *
+*** ** ******** ** ***** ** 
+*  **** ***************** **
+* *  *    *      *  *  *  * 
+*       ** **** *          *
+*    * ****  **    * * * ** 
+***    ***       * **    * *
+*** *   **  *   ** * **   * 
+****************************
+What a great resume builder this is!
+* * * * * * * * * * * * * * * * * * * 
+***** * ***** ****** ******* **** **  
+* *** * ***** ****** ******* **** ****
+**  ** * *  *** **  * *    ***  ** *  
+*                 *    **      *  *  *
+***     * *    * ***  *   *   *       
+**  *   *   *   *       **   *  *  * *
+*        *    *      *     *          
+**************************************
+
+
+*/

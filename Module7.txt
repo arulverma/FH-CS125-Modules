@@ -1,0 +1,280 @@
+import java.lang.Math;
+import java.lang.*;
+import java.util.*;
+
+public abstract class GenericMatrix<E extends Object> {  //code given to us
+  /** Abstract method for adding two elements of the matrices */
+  protected abstract E add(E o1, E o2);
+ 
+  /** Abstract method for multiplying two elements of the matrices */
+  protected abstract E multiply(E o1, E o2);
+ 
+  /** Abstract method for defining zero for the matrix element */
+  protected abstract E zero();  
+ 
+  /** Add two matrices */
+  public E[][] addMatrix(E[][] matrix1, E[][] matrix2) {
+    if ((matrix1.length != matrix2.length) ||
+        (matrix1[0].length != matrix2[0].length)) {
+      throw new RuntimeException(
+        "The matrices do not have the same size");
+    }  
+ 
+    E[][] result =
+      (E[][])new Object[matrix1.length][matrix1[0].length];  
+ 
+    // Perform addition
+    for (int i = 0; i < result.length; i++)
+      for (int j = 0; j < result[i].length; j++) {
+        result[i][j] = add(matrix1[i][j], matrix2[i][j]);
+      }
+  
+    return result;
+  } 
+ 
+  /** Multiply two matrices */
+  public E[][] multiplyMatrix(E[][] matrix1, E[][] matrix2) {
+    // Check bounds
+    if (matrix1[0].length != matrix2.length) {
+      throw new RuntimeException(
+        "The matrices do not have compatible size");
+    }  
+ 
+    // Create result matrix
+    E[][] result =
+      (E[][])new Object[matrix1.length][matrix2[0].length];  
+ 
+    // Perform multiplication of two matrices
+    for (int i = 0; i < result.length; i++) {
+      for (int j = 0; j < result[0].length; j++) {
+        result[i][j] = zero(); 
+ 
+         for (int k = 0; k < matrix1[0].length; k++) {
+          result[i][j] = add(result[i][j],
+            multiply(matrix1[i][k], matrix2[k][j]));
+        }
+      }
+    } 
+ 
+     return result;
+  } 
+ 
+   /** Print matrices, the operator, and their operation result */
+  public static void printResult(
+      Object[][] m1, Object[][] m2, Object[][] m3, char op) {
+    for (int i = 0; i < m1.length; i++) {
+      for (int j = 0; j < m1[0].length; j++)
+        System.out.print(" " + m1[i][j]); 
+ 
+      if (i == m1.length / 2)
+        System.out.print("  " + op + "  ");
+      else
+        System.out.print("     "); 
+ 
+      for (int j = 0; j < m2.length; j++)
+        System.out.print(" " + m2[i][j]); 
+ 
+      if (i == m1.length / 2)
+        System.out.print("  =  ");
+      else
+        System.out.print("     "); 
+ 
+      for (int j = 0; j < m3.length; j++)
+        System.out.print(m3[i][j] + " "); 
+ 
+      System.out.println();
+    }
+  }
+}
+
+
+public class Complex implements Cloneable, Comparable<Complex>{ //Complex creation
+	private double a;
+	private double b;
+	
+	public Complex() //default constructor
+	{
+		this.a = 0;
+		this.b = 0;
+	}
+	
+	public Complex(double a) //overriden constructors
+	{
+		this.a = a;
+		this.b = 0;
+	}
+	
+	public Complex(double a, double b)
+	{
+		this.a = a;
+		this.b = b;
+	}
+	
+	public double getRealPart() //accessors for a and b
+	{
+		return this.a;
+	}
+	
+	public double getImaginaryPart()
+	{
+		return this.b;
+	}
+	
+	public Complex add(Complex second) // adding two complex numbers according to the formula given
+	{
+		Complex c = new Complex(this.a + second.getRealPart(), this.b + second.getImaginaryPart());
+		return c;
+	}
+	
+	public Complex subtract(Complex second) // subtracting two complex numbers according to the formula given
+	{
+		Complex c = new Complex(this.a - second.getRealPart(), this.b - second.getImaginaryPart());
+		return c;
+	}
+	
+	public Complex multiply(Complex second) //multiplying two complex numbers according to the formula given
+	{
+		Complex c = new Complex((this.a * second.getRealPart() - this.b * second.getImaginaryPart()) , this.b * second.getRealPart() + this.a * second.getImaginaryPart());
+		return c;
+	}
+	
+	public Complex divide(Complex second) //dividing two complex numbers according to the formula given
+	{
+		Complex c = new Complex((this.a * second.getRealPart() + this.b * second.getImaginaryPart()) / (Math.pow(second.getRealPart(), 2) + Math.pow(second.getImaginaryPart(), 2)), (this.b * second.getRealPart() - this.a * second.getImaginaryPart()) / (Math.pow(second.getRealPart(), 2) + Math.pow(second.getImaginaryPart(), 2)));
+		return c;
+	}
+	
+	public double abs() //getting the absolute value (distance) of a imaginary number
+	{
+		return Math.pow((Math.pow(this.a, 2) + Math.pow(this.b, 2))  , 0.5);
+	}
+	
+	public String toString() //overriding toString. Format to make sure that print is always to 2 decimal places. No rounding is done
+	{
+		if(b == 0) {return this.a + "";}
+		return String.format("%.2f",this.a) + " + " + String.format("%.2f",this.b) + "i";
+	}
+	
+	@Override
+	public Object clone() //overriding clone. Catching exception just in case, but we extend cloneable
+	{
+		Complex a;
+		try
+		{
+			a = (Complex)super.clone();
+			return a;
+		}
+		catch(CloneNotSupportedException e)
+		{
+			return null;
+		}
+	}
+	
+	public int compareTo(Complex second)
+	{
+		if(this.abs() > second.abs()) {return 1;}
+		else if(this.abs() < second.abs()) {return -1;}
+		else return 0;
+	}
+}
+
+
+public class ComplexMatrix extends GenericMatrix<Complex>{ //E = complex in this case
+	
+	public ComplexMatrix()
+	{
+	}
+	
+	public Complex add(Complex a, Complex b) //using the functions made in Complex to simplify the ComplexMatrix code
+	{ 	   
+		return a.add(b);
+	} 
+	
+	public Complex multiply(Complex a, Complex b)
+	{
+		return a.multiply(b);
+	} 
+	
+	public Complex zero()
+	{
+		return new Complex();
+	}
+	
+}
+
+
+public class Foothill {
+  public static void main(String[] args) {
+	  ComplexMatrix matrix = new ComplexMatrix();//creation of matrices and filling with arbitrary values
+	  Complex[][] cn1 = new Complex[3][3];
+	  Complex[][] cn2 = new Complex[3][3];
+	  Complex[][] cn3 = new Complex[2][2];
+	  for(int i = 0; i < 3; i++)
+	  {
+		  for(int j = 0; j < 3; j++)
+		  {
+			  Complex n = new Complex((double)i+0.527, (double)j + 0.336);
+			  cn1[i][j] = n;
+			  if(i == 2 && j == 0) {cn1[i][j] = matrix.zero();}
+		  }
+		  
+	  }
+	  
+	  for(int i = 0; i < 3; i++)
+	  {
+		  for(int j = 0; j < 3; j++)
+		  {
+			  Complex n = new Complex((double)i+0.318, (double)j + 0.719);
+			  cn2[i][j] = n;
+			  if(i == j) {cn2[i][j] = matrix.zero();} //turns a diagonal into 0
+		  }
+	  }
+	  
+	  for(int i = 0; i < 3; i++)
+	  {
+		  for(int j = 0; j < 3; j++)
+		  {
+			  Complex n = new Complex((double)i+0.318, (double)j + 0.719);
+			  cn2[i][j] = n;
+			  if(i == j) {cn2[i][j] = matrix.zero();} // turns a single value into 0
+		  }
+	  }
+	  
+	  Object[][] ar = matrix.addMatrix(cn1,cn2); //multiplying and adding before we print
+	  Object[][] mr = matrix.multiplyMatrix(cn1, cn2);
+	  
+	  for(int i = 0; i < 2; i++)
+	  {
+		  for(int j = 0; j < 2; j++)
+		  {
+			  Complex n = new Complex((double)i+0.328, (double)j + 0.776); //creating our 2x2 to test the runtime exception
+			  cn3[i][j] = n;
+		  }
+	  }
+	  System.out.println("Addition: ");
+	  ComplexMatrix.printResult(cn1, cn2, ar, '+');
+	  
+	  System.out.println("\n Multiplication: ");
+	  ComplexMatrix.printResult(cn1, cn2, mr, '*');
+	  
+	  System.out.println("\n 3x3 + 2x2");
+	  matrix.addMatrix(cn1, cn3);
+  }
+}
+
+/*
+Addition: 
+ 0.53 + 0.34i 0.53 + 1.34i 0.53 + 2.34i      0.0 0.32 + 1.72i 0.32 + 2.72i     0.53 + 0.34i 0.85 + 3.05i 0.85 + 5.06i 
+ 1.53 + 0.34i 1.53 + 1.34i 1.53 + 2.34i  +   1.32 + 0.72i 0.0 1.32 + 2.72i  =  2.85 + 1.06i 1.53 + 1.34i 2.85 + 5.06i 
+ 0.0 2.53 + 1.34i 2.53 + 2.34i      2.32 + 0.72i 2.32 + 1.72i 0.0     2.32 + 0.72i 4.85 + 3.05i 2.53 + 2.34i 
+
+ Multiplication: 
+ 0.53 + 0.34i 0.53 + 1.34i 0.53 + 2.34i      0.0 0.32 + 1.72i 0.32 + 2.72i     -0.72 + 7.93i -3.20 + 7.33i -3.68 + 4.73i 
+ 1.53 + 0.34i 1.53 + 1.34i 1.53 + 2.34i  *   1.32 + 0.72i 0.0 1.32 + 2.72i  =  2.91 + 9.37i -0.57 + 10.77i -2.05 + 10.17i 
+ 0.0 2.53 + 1.34i 2.53 + 2.34i      2.32 + 0.72i 2.32 + 1.72i 0.0     6.55 + 10.81i 1.84 + 9.76i -0.30 + 8.63i 
+
+ 3x3 + 2x2
+Exception in thread "main" java.lang.RuntimeException: The matrices do not have the same size
+	at GenericMatrix.addMatrix(GenericMatrix.java:15)
+	at Foothill.main(Foothill.java:59)
+*/

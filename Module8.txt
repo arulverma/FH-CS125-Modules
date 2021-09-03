@@ -1,0 +1,432 @@
+package application;
+
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.stage.Stage;
+import javafx.scene.image.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import java.io.File;
+import javafx.scene.control.TextField;
+import java.lang.Math;
+import java.util.Stack;
+import java.util.Arrays;
+
+public class CardIdentity {  //This is the base CardIdentity class from assignment 1 and 2. It is used as a super class for card. Its main focus is on the enum for suit and for storing the value of a card
+    public enum Suit{CLUBS,DIAMONDS,HEARTS,SPADES};
+    
+    private char value;
+    private Suit suit;
+    
+    public CardIdentity()
+    {
+      this.value = 'A';
+      this.suit = Suit.SPADES;
+    }
+
+    private boolean isValid(char value, Suit suit)
+    {
+      char[] charArray = {'A','2','3','4','5','6','7','8','9','T','J','Q','K'};
+      if (new String(charArray).indexOf(value) != -1) {
+        return true;
+      }
+      return false;
+    }
+
+    public boolean set(char value, Suit suit)
+    {
+      if(isValid(value,suit) == false) {return false;}
+      this.value = value;
+      this.suit = suit;
+      return true;
+    }
+
+    public char getval()
+    {
+      return this.value;
+    }
+
+    public Suit getsuit()
+    {
+      return this.suit;
+    }
+}
+
+public class Card extends CardIdentity{ //this is the card class. It is used as a base for the deck and hand classes from assignment 1 and 2. There are no changes. Its main focus are on the tostring method which are used in the Hand tostring and on the value/suit storage
+    private boolean cardError;
+
+    public Card()
+    {
+      super();
+      this.cardError = false;
+    }
+
+    public Card(char value, Suit suit)
+    {
+      boolean ret = this.set(value,suit);
+      if(ret) {this.cardError = false;}
+      if(!ret) {this.set('A',Suit.SPADES); this.cardError = true;}
+    }
+    
+    public boolean set(char value, Suit suit)
+    {
+      boolean ret = super.set(value,suit);
+      if(ret) {this.cardError = false; return true;}
+      if(!ret) {return ret;}
+      return false;
+    }
+
+    public String tostring()
+    {
+      String house = "";
+      if(this.getsuit() == Suit.SPADES){house = "spades";}
+      if(this.getsuit() == Suit.CLUBS){house = "clubs";}
+      if(this.getsuit() == Suit.HEARTS){house = "hearts";}
+      if(this.getsuit() == Suit.DIAMONDS){house = "diamonds";}
+
+      if(this.cardError){return "[invalid]";}
+      return "" + this.getval() + " of " + house;
+    }
+
+    public boolean getcE()
+    {
+      return this.cardError;
+    }
+
+    public boolean equals(Card card)
+    {
+      if(this.getval() == card.getval())
+      {
+        if(this.getsuit() == card.getsuit())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+}
+
+public class GUICard {
+
+	private static Image[][] imageCards = new Image[14][4];   // 14 = A thru K (+ joker)
+	private static ImageView[][] imageCardViews = new ImageView[14][4];
+	private static Image imageBack;
+	private static ImageView imageCardBack;
+	//static Pane pane = new FlowPane();
+	
+	private static String cardlValsConvertAssist = "23456789TJQKAX";
+	private static String suitValsConvertAssist  = "CDHS";
+	private static Card.Suit suitConvertAssist[] =
+	{
+	   Card.Suit.CLUBS,
+	   Card.Suit.DIAMONDS,
+	   Card.Suit.HEARTS,
+	   Card.Suit.SPADES
+	};
+	
+	private static boolean imagesLoaded = false; 
+	
+	static void loadCardImages() //loads images after checking the static imagesloaded boolean. Puts all the loaded cards into the 2d arrays imageCards and imageCardsView
+	{
+		  if(imagesLoaded == true) {return;}
+		  
+		  String imageFileName;
+	      int intSuit, intVal;
+	      for (intVal = 0; intVal < 14; intVal++)
+	      {
+	         for (intSuit = 0; intSuit < 4; intSuit++)
+	         {
+	        	 imageFileName = "file:images/" + cardlValsConvertAssist.charAt(intVal) + suitValsConvertAssist.charAt(intVal) + ".gif";
+	        	 imageCards[intVal][intSuit] = new Image((imageFileName));
+	        	 imageCardViews[intVal][intSuit] = new ImageView(imageCards[intVal][intSuit]);
+	             //pane.getChildren().add(imageCardViews[intVal][intSuit]);
+	         }
+	      }
+	      
+	      imageFileName = "file:images/BK.gif";
+	      imageBack = new Image((imageFileName));
+	      imageCardBack = new ImageView(imageBack);
+	      //pane.getChildren().add(imageCardBack);
+	      
+	      imagesLoaded = true;
+	}
+	
+	static public Image getBackCardImage() //returns the imageBack initialized in LoadCardImages()
+	{
+		loadCardImages(); //cannot load twice
+		return imageBack;
+	}
+	
+	public static Image getImage(Card card)//returns the images initialized in LoadCardImages()
+	{
+	   loadCardImages(); // will not load twice, so no worries.
+	   return imageCards[valueAsInt(card)][suitAsInt(card)];
+	}
+
+	public static char turnIntIntoCardValueChar(int k) //noncomplex getter methods from here onward
+	{
+		return cardlValsConvertAssist.charAt(k);
+	}
+	public static char turnIntIntoCardSuitChar(int k) 
+	{
+		return suitValsConvertAssist.charAt(k);
+	}
+	public static Card.Suit turnIntIntoSuit(int k) 
+	{
+		return suitConvertAssist[k];
+	}
+	public static int valueAsInt(Card card) 
+	{
+		char val = card.getval();
+		return cardlValsConvertAssist.indexOf(val);
+	}
+	public static int suitAsInt(Card card)
+	{
+		Card.Suit val = card.getsuit();
+		for(int i = 0; i < 4; i++)
+		{
+			if(val == suitConvertAssist[i])
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+}
+
+public class Main extends Application {
+	 final int NUM_CARDS = 4;
+	 Card[] cd = new Card[NUM_CARDS];
+	 Image[] Im = new Image[NUM_CARDS];
+	 ImageView[] ImV = new ImageView[NUM_CARDS];
+
+    private Card generateRandomCard() //generates a random card using Math.random and initializes a card based on the values
+    {
+	     int ival = (int)(Math.random() * 14);
+	     int isuit = (int)(Math.random() * 4);
+	   
+	     char val = GUICard.turnIntIntoCardValueChar(ival);
+	     Card.Suit suit = GUICard.turnIntIntoSuit(isuit);
+	   
+	     Card ret = new Card(val,suit);
+	     return ret;
+    }
+    
+    public void shuffle(Pane pPane) //picks four random cards and adds them to the arrays before printing to the pane
+    {
+    	pPane.getChildren().clear();
+        pPane.setPadding(new Insets(100, 200, 100, 200));
+        
+        for(int i = 0; i < 4; i++)
+        {
+        	Card temp = generateRandomCard();
+        	boolean repeat = true;
+        	while(repeat == true)
+        	{
+        		repeat = false;
+        		temp = generateRandomCard();
+        		for(int j = i-1; j >= 0; j--)
+        		{
+        			if(temp.equals(cd[j]))
+        			{
+        				repeat = true;
+        			}
+        		}
+        		if(repeat == false)
+        		{
+        			cd[i] = temp;
+        			Im[i] = new Image("file:images/" + GUICard.turnIntIntoCardValueChar(GUICard.valueAsInt(temp)) + GUICard.turnIntIntoCardSuitChar(GUICard.suitAsInt(temp)) + ".gif");
+                    ImV[i] = new ImageView(Im[i]);
+                    pPane.getChildren().add(ImV[i]);
+        		}
+        	}
+        }
+    }
+    
+    public void verify(TextField tf, Label lb) //evaluates expressions
+    {
+    	String eq = tf.getText();
+    	eq = space(eq);
+    	String[] splits = eq.split(" ");
+    	String[] unum = new String[NUM_CARDS];
+    	int cspace = 0;
+    	
+    	Stack<Integer> num = new Stack<>();
+    	Stack<Character> operation = new Stack<>();
+    	
+    	for(String tk : splits)
+    	{
+    		if(tk.length() == 0)
+    		{
+    			continue;
+    		}
+    		else if(tk.charAt(0) == '+' || tk.charAt(0) == '-') //evaluates addition while there is no higher priority
+    		{
+    			while(!operation.isEmpty() && (operation.peek() == '+' || operation.peek() == '-' || operation.peek() == '*' || operation.peek() == '/'))
+    			{
+    				processOperator(num, operation);
+    			}
+    			operation.push(tk.charAt(0));
+    		}
+    		else if(tk.charAt(0) == '*' || tk.charAt(0) == '/') //evaluates multiplication and division
+    		{
+    			while(!operation.isEmpty() && (operation.peek() == '*' || operation.peek() == '/'))
+    			{
+    				processOperator(num, operation);
+    			}
+    			operation.push(tk.charAt(0));
+    		}
+    		else if(tk.trim().charAt(0) == '(') //evaluates paranthesis first
+    		{
+    			operation.push('(');
+    		}
+    		else if(tk.trim().charAt(0) == ')')
+    		{
+    			while(operation.peek() != '(')
+    			{
+    				processOperator(num, operation);
+    			}
+    			operation.pop();
+    		}
+    		else //when pushing numbers, also adds them to used_numbers (aka unum) to check if they were valid later
+    		{
+    			num.push(Integer.valueOf(tk));
+    			unum[cspace] = tk;
+    			cspace++;
+    		}
+    	}
+    	
+    	while(!operation.isEmpty())
+    	{
+    		processOperator(num, operation);
+    	}
+    	
+    	int value = num.pop();
+    	
+    	if(!checkCards(unum, lb))
+    	{
+    		lb.setText("The numbers in the expression do not match the cards");
+    	}
+    	else if(value != 24)
+    	{
+    		lb.setText("Incorrect Result");
+    	}
+    	else
+    	{
+    		lb.setText("Correct");
+    	}
+    }
+
+    public boolean checkCards(String[] chars, Label lb) //checks if the integers entered are valid
+    {
+    	String valkey = "A23456789TJQK";
+    	int[] valid = new int[NUM_CARDS];
+    	int[] used = new int[NUM_CARDS];
+    	for(int i = 0; i < NUM_CARDS; i++) //uses cd array to get the card values as integers
+    	{
+    		valid[i] = valkey.indexOf(cd[i].getval()) + 1;
+    		used[i] = Integer.valueOf(chars[i]);
+    	}
+    	Arrays.sort(valid);
+    	Arrays.sort(used);
+    	for(int i = 0; i < NUM_CARDS; i++) //sorts both arrays and checks to see if each index stored value is the same
+    	{
+    		if(valid[i] != used[i])
+    		{
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
+    private static void processOperator(Stack<Integer> num, Stack<Character> oper) // takes two numbers from the int stack and an operator and returns the evaluation
+    {
+    	char op = oper.pop();
+    	int o1 = num.pop();
+    	int o2 = num.pop();
+    	if(op == '+')
+    	{
+    		num.push(o2+o1);
+    	}
+    	else if(op == '-')
+    	{
+    		num.push(o2-o1);
+    	}
+    	else if(op == '*')
+    	{
+    		num.push(o2*o1);
+    	}
+    	else if(op == '/')
+    	{
+    		num.push(o2/o1);
+    	}
+    }
+    
+    private static String space(String s)
+    {
+    	String res = "";
+    	for(int i = 0; i < s.length(); i++)
+    	{
+    		if(s.charAt(i) == '(' || s.charAt(i) == ')' || s.charAt(i) == '+' || s.charAt(i) == '-' || s.charAt(i) == '*' || s.charAt(i) == '/')
+    		{
+    			res += " " + s.charAt(i) + " ";
+    		}
+    		else
+    		{
+    			res += s.charAt(i);
+    		}
+    	}
+    	return res;
+    }
+    
+    public void start(Stage primaryStage)
+    {
+       // Create the scene and place it in the stage
+       BorderPane pane = new BorderPane();    
+       Scene scene = new Scene(pane, 800, 600);
+       primaryStage.setTitle("Card Table");
+       primaryStage.setScene(scene);
+
+       // CREATE IMAGES ----------------------------------------------------
+       
+       HBox bt = new HBox(10);
+       HBox cards = new HBox(30);
+       HBox tf = new HBox(15);
+       shuffle(cards);
+       
+       Button shuf = new Button();
+       Label lb = new Label("");
+       shuf.setOnAction(e -> shuffle(cards));
+       shuf.setText("Shuffle");
+       bt.getChildren().addAll(lb,shuf);
+       bt.setAlignment(Pos.TOP_RIGHT);
+       
+       TextField text = new TextField();
+       Button btn = new Button();
+       tf.getChildren().addAll(btn, text);
+       tf.setAlignment(Pos.CENTER);
+       btn.setText("Verify");
+       btn.setOnAction(e -> verify(text, lb));
+       
+       
+       
+       pane.setTop(bt);
+       pane.setCenter(cards); //places panes and shows to user  
+       pane.setBottom(tf); 
+
+       // show everything to the user
+       primaryStage.show();    
+   }
+    
+  
+  public static void main(String[] args) 
+  {
+     launch(args);
+  }
+}
+   
+

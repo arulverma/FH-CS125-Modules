@@ -1,0 +1,423 @@
+//Made by Arul Verma. The code creates a random integer set of lengths from 50000 to 300000 and sorts it using six different sorting methods, recording the time in milliseconds take to run each sorting algorithm on the set
+
+import java.util.ArrayList; 
+import java.util.Comparator;
+import java.lang.Math;
+
+public class Bubble_Sort { //basic bubble sort
+	public int[] sort(int[] unsorted)
+	{
+		int[] sorted = new int[unsorted.length];
+		for(int i = 0; i < unsorted.length; i++) {
+			for(int j = 0; j < unsorted.length-1; j++) {
+				if(unsorted[j] < unsorted[j+1])
+				{
+					int temp = unsorted[j];
+					unsorted[j] = unsorted[j+1];
+					unsorted[j+1] = temp;
+				}
+			}
+		}
+		sorted = unsorted;
+		return sorted;
+	}
+}
+
+
+public class Heap<E> { //creates a heap from a list for heap sort
+	private java.util.ArrayList<E> list = new java.util.ArrayList<>();
+	private java.util.Comparator<? super E> c;
+	
+	public Heap()
+	{
+		this.c = (e1, e2) -> ((Comparable<E>)e1).compareTo(e2);
+	}
+	
+	public Heap(java.util.Comparator<E> c)
+	{
+		this.c = c;
+	}
+	
+	public Heap(E[] objects)
+	{
+		this.c = (e1, e2) -> ((Comparable<E>)e1).compareTo(e2);
+		for(int i = 0; i < objects.length; i++)
+		{
+			add(objects[i]);
+		}
+	}
+	
+	public void add(E nO)
+	{
+		list.add(nO);
+		int cI = list.size() - 1;
+		
+		while(cI > 0)
+		{
+			int pI = (cI-1)/2;
+			
+			if(c.compare(list.get(cI), list.get(pI)) > 0)
+			{
+				E temp = list.get(cI);
+				list.set(cI, list.get(pI));
+				list.set(pI, temp);
+			}
+			else
+			{
+				break;
+			}
+			
+			cI = pI;
+		}
+	}
+	
+	public E remove()
+	{
+		if(list.size() == 0) return null;
+		E rO = list.get(0);
+		list.set(0,  list.get(list.size() - 1));
+		list.remove(list.size() - 1);
+		
+		int cI = 0;
+		while( cI < list.size()) {
+			int lCI = 2 * cI + 1;
+			int rCI = 2 * cI + 2;
+			if(lCI >= list.size()) break;
+			int mI = lCI;
+			if(rCI < list.size())
+			{
+				if(c.compare(list.get(mI), list.get(rCI)) < 0)
+				{
+					mI = rCI;
+				}
+			}
+			
+			if(c.compare(list.get(cI), list.get(mI)) < 0)
+			{
+				E temp = list.get(mI);
+				list.set(mI, list.get(cI));
+				list.set(cI, temp);
+				cI = mI;
+			}
+			else
+			{
+				break;
+			}
+		}
+		return rO;
+	}
+}
+
+public class Heap_sort<E>{ //sorts the list into a tree using the heap
+	
+
+	private void heap_sort(E[] list, Comparator<E> c)
+	{
+		Heap<E> heap = new Heap<>(c);
+		
+		for(int i = 0; i < list.length; i++)
+		{
+			heap.add(list[i]);
+		}
+		
+		for(int i = list.length - 1; i >=0; i--)
+		{
+			list[i] = heap.remove();
+		}
+	}
+	
+	public void heap_sort(E[] list)
+	{
+		Comparator<E> c = (e1, e2) -> ((Comparable<E>)e1).compareTo(e2);
+		heap_sort(list, c);
+	}
+
+}
+
+
+public class Insertion_Sort { //sorts by checking if each number before was greater, and if so, swaps the positions
+	public int[] sort(int[] array) 
+	{
+	    int[] sorted = array;
+	    int size = array.length;
+
+	    for (int i = 1; i < size; i++) 
+	    {
+	      int key = array[i];
+	      int j = i - 1;
+
+	      while (j >= 0 && key < array[j]) {
+	        array[j + 1] = array[j];
+	        --j;
+	      }
+
+	      array[j+1] = key;
+	    }
+	    return array;
+	  }
+}
+
+
+public class Merge_Sort {
+	public int[] sort(int[] list)
+	{
+		if(list.length > 1)
+		{
+			int[] firstHalf = new int[list.length / 2];
+
+			System.arraycopy(list, 0 , firstHalf, 0, list.length / 2);
+			sort(firstHalf);
+			
+			int shl = list.length - list.length / 2;
+			int[] secondHalf = new int[shl];
+			System.arraycopy(list, list.length/2 , secondHalf, 0, shl);
+			sort(secondHalf);
+			
+			merge(firstHalf, secondHalf, list);
+		}
+		return list;
+	}
+	
+	public static void merge(int[] l1, int[] l2, int[] l3)
+	{
+		int c1 = 0;
+		int c2 = 0;
+		int c3 = 0;
+		
+		while(c1 < l1.length && c2 < l2.length)
+		{
+			if(l1[c1] < l2[c2])
+			{
+				l3[c3++] = l1[c1++];
+			}
+			else
+			{
+				l3[c3++] = l2[c2++];
+			}
+		}
+		
+		while(c1 < l1.length)
+		{
+			l3[c3++] = l1[c1++];
+		}
+		
+		while(c2 < l2.length)
+		{
+			l3[c3++] = l2[c2++];
+		}
+	}
+}
+
+
+public class Quick_Sort {
+	public int[] sort(int[] list)
+	{
+		return sort(list, 0, list.length - 1);
+	}
+	
+	public int[] sort(int[] list, int first, int last)
+	{
+		if(last > first)
+		{
+			int pI = partition(list, first, last);
+			sort(list, first, pI-1);
+			sort(list, pI+1, last);
+		}
+		return list;
+	}
+	public static int partition(int[] list, int first, int last)
+	{
+		int pivot = list[first];
+		int low = first+1;
+		int high = last;
+		
+		while(high > low)
+		{
+			while(low <= high && list[low] <= pivot)
+			{low++;}
+			while(low <= high && list[high] >= pivot)
+			{high--;}
+			if(high > low)
+			{
+				int temp = list[high];
+				list[high] = list[low];
+				list[low] = temp;
+			}
+		}
+		
+		while(high > first && list[high] >= pivot)
+		{
+			high--;
+		}
+		
+		if(pivot > list[high])
+		{
+			list[first] = list[high];
+			list[high] = pivot;
+			return high;
+		}
+		else
+		{
+			return first;
+		}
+	}
+}
+
+public class Radix_Sort<E> {
+	public E[] radix_sort(int iter, E[] list)
+	{
+		if(5-iter == -1) return list;
+		ArrayList<ArrayList<E>> bucket = new ArrayList<ArrayList<E>>(10);
+		
+		for(int i = 0; i < 10; i++)
+		{
+			bucket.add(new ArrayList<E>());
+		}
+		
+		for(int i = 0; i < list.length; i++)
+		{
+			String val = (int)list[i]+"";
+			
+			
+			int key = 0;
+			if((val.length() - 1 - iter)>=0)
+			{
+				key = (Integer.valueOf(String.valueOf((int)list[i]).charAt(val.length() - 1 - iter))) - 48;
+			}
+			bucket.get(key).add(list[i]);
+		}
+		
+		int k = 0;
+		for(int i = 0; i < bucket.size(); i++)
+		{
+			if(bucket.get(i) != null)
+			{
+				for(int j = 0; j < bucket.get(i).size(); j++)
+				{
+					list[k++] = bucket.get(i).get(j);
+				}
+			}
+		}
+		return radix_sort(iter+1, list);
+	}
+}
+
+public class Main { //tests all the sorts and makes a table of the results
+
+	public static void main(String[] args) {
+		int[] nums = {50000, 100000, 150000, 200000, 250000, 300000};
+		System.out.println("Array Size:   50000        100000        150000        200000        250000        300000");
+		
+		System.out.print("Bubble Sort:  ");
+		for(int num : nums)
+		{
+			int[] a1 = new int[num];
+			for(int i = 0; i < num; i++)
+			{
+				a1[i] = (int)(Math.random()*num);
+			}
+			Bubble_Sort b = new Bubble_Sort();
+			long startTime = System.nanoTime();
+			b.sort(a1);
+			long endTime = System.nanoTime();
+			long executionTime = endTime - startTime;
+			System.out.print(executionTime/1000000 + "         ");
+		}
+		System.out.println("");
+		
+		System.out.print("Insertion Sort: ");
+		for(int num : nums)
+		{
+			int[] a1 = new int[num];
+			for(int i = 0; i < num; i++)
+			{
+				a1[i] = (int)(Math.random()*num);
+			}
+			Insertion_Sort b = new Insertion_Sort();
+			long startTime = System.nanoTime();
+			b.sort(a1);
+			long endTime = System.nanoTime();
+			long executionTime = endTime - startTime;
+			System.out.print(executionTime/1000000 + "          ");
+		}
+		System.out.println("");
+		
+		System.out.print("Merge Sort:    ");
+		for(int num : nums)
+		{
+			int[] a1 = new int[num];
+			for(int i = 0; i < num; i++)
+			{
+				a1[i] = (int)(Math.random()*num);
+			}
+			Merge_Sort b = new Merge_Sort();
+			long startTime = System.nanoTime();
+			b.sort(a1);
+			long endTime = System.nanoTime();
+			long executionTime = endTime - startTime;
+			System.out.print(executionTime/1000000 + "            ");
+		}
+		System.out.println("");
+		
+		System.out.print("Quick Sort:    ");
+		for(int num : nums)
+		{
+			int[] a1 = new int[num];
+			for(int i = 0; i < num; i++)
+			{
+				a1[i] = (int)(Math.random()*num);
+			}
+			Quick_Sort b = new Quick_Sort();
+			long startTime = System.nanoTime();
+			b.sort(a1);
+			long endTime = System.nanoTime();
+			long executionTime = endTime - startTime;
+			System.out.print(executionTime/1000000 + "            ");
+		}
+		System.out.println("");
+		
+		System.out.print("Heap Sort:    ");
+		for(int num : nums)
+		{
+			Integer[] a1 = new Integer[num];
+			for(int i = 0; i < num; i++)
+			{
+				a1[i] = (int)(Math.random()*num);
+			}
+			Heap_sort<Integer> b = new Heap_sort<Integer>();
+			long startTime = System.nanoTime();
+			b.heap_sort(a1);
+			long endTime = System.nanoTime();
+			long executionTime = endTime - startTime;
+			System.out.print(executionTime/1000000 + "            ");
+		}
+		System.out.println("");
+		
+		System.out.print("Radix Sort:    ");
+		for(int num : nums)
+		{
+			Integer[] a1 = new Integer[num];
+			for(int i = 0; i < num; i++)
+			{
+				a1[i] = (int)(Math.random()*num);
+			}
+			Radix_Sort<Integer> b = new Radix_Sort<Integer>();
+			long startTime = System.nanoTime();
+			b.radix_sort(0, a1);
+			long endTime = System.nanoTime();
+			long executionTime = endTime - startTime;
+			System.out.print(executionTime/1000000 + "            ");
+		}
+		System.out.println("");
+	}
+
+}
+/*
+Array Size:   50000        100000        150000        200000        250000        300000
+Bubble Sort:  5399         23927         56070         103536         184415         342990         
+Insertion Sort: 1549          7567          3078          5302          7071          10239          
+Merge Sort:    15            31            35            54            70            97            
+Quick Sort:    12            13            25            33            46            52            
+Heap Sort:    91            91            94            139            236            291            
+Radix Sort:    155            179            313            344            295            340    
+*/

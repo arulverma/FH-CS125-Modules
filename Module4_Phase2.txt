@@ -1,0 +1,279 @@
+//Made by Arul Verma. The code creates 7 random cards for the player and 2 random "played cards". It then displays these cards in addition to 7 card backs representing the computer's cards. The key classes are GUICard and Foothill(containing the main)
+
+package application;
+
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.*;
+import javafx.geometry.Insets;
+import javafx.stage.Stage;
+import javafx.scene.image.*;
+import javafx.scene.control.Label;
+import java.io.File;
+
+public class CardIdentity {  //This is the base CardIdentity class from assignment 1 and 2. It is used as a super class for card. Its main focus is on the enum for suit and for storing the value of a card
+    public enum Suit{CLUBS,DIAMONDS,HEARTS,SPADES};
+    
+    private char value;
+    private Suit suit;
+    
+    public CardIdentity()
+    {
+      this.value = 'A';
+      this.suit = Suit.SPADES;
+    }
+
+    private boolean isValid(char value, Suit suit)
+    {
+      char[] charArray = {'A','2','3','4','5','6','7','8','9','T','J','Q','K'};
+      if (new String(charArray).indexOf(value) != -1) {
+        return true;
+      }
+      return false;
+    }
+
+    public boolean set(char value, Suit suit)
+    {
+      if(isValid(value,suit) == false) {return false;}
+      this.value = value;
+      this.suit = suit;
+      return true;
+    }
+
+    public char getval()
+    {
+      return this.value;
+    }
+
+    public Suit getsuit()
+    {
+      return this.suit;
+    }
+}
+
+public class Card extends CardIdentity{ //this is the card class. It is used as a base for the deck and hand classes from assignment 1 and 2. There are no changes. Its main focus are on the tostring method which are used in the Hand tostring and on the value/suit storage
+    private boolean cardError;
+
+    public Card()
+    {
+      super();
+      this.cardError = false;
+    }
+
+    public Card(char value, Suit suit)
+    {
+      boolean ret = this.set(value,suit);
+      if(ret) {this.cardError = false;}
+      if(!ret) {this.set('A',Suit.SPADES); this.cardError = true;}
+    }
+    
+    public boolean set(char value, Suit suit)
+    {
+      boolean ret = super.set(value,suit);
+      if(ret) {this.cardError = false; return true;}
+      if(!ret) {return ret;}
+      return false;
+    }
+
+    public String tostring()
+    {
+      String house = "";
+      if(this.getsuit() == Suit.SPADES){house = "spades";}
+      if(this.getsuit() == Suit.CLUBS){house = "clubs";}
+      if(this.getsuit() == Suit.HEARTS){house = "hearts";}
+      if(this.getsuit() == Suit.DIAMONDS){house = "diamonds";}
+
+      if(this.cardError){return "[invalid]";}
+      return "" + this.getval() + " of " + house;
+    }
+
+    public boolean getcE()
+    {
+      return this.cardError;
+    }
+
+    public boolean equals(Card card)
+    {
+      if(this.getval() == card.getval())
+      {
+        if(this.getsuit() == card.getsuit())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+}
+
+public class GUICard {
+
+	private static Image[][] imageCards = new Image[14][4];   // 14 = A thru K (+ joker)
+	private static ImageView[][] imageCardViews = new ImageView[14][4];
+	private static Image imageBack;
+	private static ImageView imageCardBack;
+	//static Pane pane = new FlowPane();
+	
+	private static String cardlValsConvertAssist = "23456789TJQKAX";
+	private static String suitValsConvertAssist  = "CDHS";
+	private static Card.Suit suitConvertAssist[] =
+	{
+	   Card.Suit.CLUBS,
+	   Card.Suit.DIAMONDS,
+	   Card.Suit.HEARTS,
+	   Card.Suit.SPADES
+	};
+	
+	private static boolean imagesLoaded = false; 
+	
+	static void loadCardImages() //loads images after checking the static imagesloaded boolean. Puts all the loaded cards into the 2d arrays imageCards and imageCardsView
+	{
+		  if(imagesLoaded == true) {return;}
+		  
+		  String imageFileName;
+	      int intSuit, intVal;
+	      for (intVal = 0; intVal < 14; intVal++)
+	      {
+	         for (intSuit = 0; intSuit < 4; intSuit++)
+	         {
+	        	 imageFileName = "file:images/" + cardlValsConvertAssist.charAt(intVal) + suitValsConvertAssist.charAt(intVal) + ".gif";
+	        	 imageCards[intVal][intSuit] = new Image((imageFileName));
+	        	 imageCardViews[intVal][intSuit] = new ImageView(imageCards[intVal][intSuit]);
+	             //pane.getChildren().add(imageCardViews[intVal][intSuit]);
+	         }
+	      }
+	      
+	      imageFileName = "file:images/BK.gif";
+	      imageBack = new Image((imageFileName));
+	      imageCardBack = new ImageView(imageBack);
+	      //pane.getChildren().add(imageCardBack);
+	      
+	      imagesLoaded = true;
+	}
+	
+	static public Image getBackCardImage() //returns the imageBack initialized in LoadCardImages()
+	{
+		loadCardImages(); //cannot load twice
+		return imageBack;
+	}
+	
+	public static Image getImage(Card card)//returns the images initialized in LoadCardImages()
+	{
+	   loadCardImages(); // will not load twice, so no worries.
+	   return imageCards[valueAsInt(card)][suitAsInt(card)];
+	}
+
+	public static char turnIntIntoCardValueChar(int k) //noncomplex getter methods from here onward
+	{
+		return cardlValsConvertAssist.charAt(k);
+	}
+	public static char turnIntIntoCardSuitChar(int k) 
+	{
+		return suitValsConvertAssist.charAt(k);
+	}
+	public static Card.Suit turnIntIntoSuit(int k) 
+	{
+		return suitConvertAssist[k];
+	}
+	public static int valueAsInt(Card card) 
+	{
+		char val = card.getval();
+		return cardlValsConvertAssist.indexOf(val);
+	}
+	public static int suitAsInt(Card card)
+	{
+		Card.Suit val = card.getsuit();
+		for(int i = 0; i < 4; i++)
+		{
+			if(val == suitConvertAssist[i])
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+}
+
+public class Foothill extends Application
+{
+	 final int NUM_CARDS_PER_HAND = 7;
+	 final int NUM_PLAYERS = 2;
+	 Image[] humanImages = new Image[NUM_CARDS_PER_HAND];
+	 ImageView[] humanViews = new ImageView[NUM_CARDS_PER_HAND];
+	 Image[] computerImages = new Image[NUM_CARDS_PER_HAND];
+	 ImageView[] computerViews = new ImageView[NUM_CARDS_PER_HAND];
+	 Image[] playedImages = new Image[NUM_CARDS_PER_HAND];
+	 ImageView[] playedViews = new ImageView[NUM_CARDS_PER_HAND];
+	 Label[] playLabelText = new Label[NUM_PLAYERS];
+
+     public Card generateRandomCard() //generates a random card using Math.random and initializes a card based on the values
+     {
+	     int ival = (int)(Math.random() * 14);
+	     int isuit = (int)(Math.random() * 4);
+	   
+	     char val = GUICard.turnIntIntoCardValueChar(ival);
+	     Card.Suit suit = GUICard.turnIntIntoSuit(isuit);
+	   
+	     Card ret = new Card(val,suit);
+	     return ret;
+     }
+   
+     public void start(Stage primaryStage)
+     {
+        // Create the scene and place it in the stage
+        BorderPane pane = new BorderPane();    
+        Scene scene = new Scene(pane, 800, 600);
+        primaryStage.setTitle("Card Table");
+        primaryStage.setScene(scene);
+        Card use;
+
+        // CREATE IMAGES ----------------------------------------------------
+        for(int i = 0; i < NUM_CARDS_PER_HAND; i++) //generates 7 random cards and turns the card's value into a int then into a char, turns the cards's Card.Suit into a int then into a char and creates a string for the image out of this information
+        {
+        	  use = generateRandomCard();
+        	  humanImages[i] = new Image("file:images/" + GUICard.turnIntIntoCardValueChar(GUICard.valueAsInt(use)) + GUICard.turnIntIntoCardSuitChar(GUICard.suitAsInt(use)) + ".gif");
+        	  humanViews[i] = new ImageView(humanImages[i]);
+        }
+  		
+        for(int i = 0; i < NUM_CARDS_PER_HAND; i++) //generates 7 back of card images
+        {
+        	  computerImages[i] = new Image("file:images/BK.gif");
+        	  computerViews[i] = new ImageView(computerImages[i]);
+        }
+        // ADD IMAGEVIEWS TO PANES -----------------------------------------
+        HBox humanPane = new HBox(15);//sets the panes for human and computer hands
+        HBox computerPane = new HBox(15);
+        humanPane.setPadding(new Insets(15, 100, 15, 100));
+        computerPane.setPadding(new Insets(15, 100, 15, 100));
+        
+        for(int i = 0; i < NUM_CARDS_PER_HAND; i++) //adds cards to the pane
+        {
+        	humanPane.getChildren().add(humanViews[i]);
+        	computerPane.getChildren().add(computerViews[i]);
+        }
+        
+        // and two random cards in the play region (simulating a computer/hum ply)
+        FlowPane playedPane = new FlowPane(150,15);
+        playedPane.setPadding(new Insets(100, 200, 100, 250)); //250 as the cards are not properly centered
+        
+        for(int i = 0; i < NUM_PLAYERS;i++) //2 random cards to be played
+        {
+        	use = generateRandomCard();
+        	Image im = new Image("file:images/" + GUICard.turnIntIntoCardValueChar(GUICard.valueAsInt(use)) + GUICard.turnIntIntoCardSuitChar(GUICard.suitAsInt(use)) + ".gif");
+        	ImageView imv = new ImageView(im);
+        	playedPane.getChildren().add(imv);
+        }
+
+        pane.setTop(computerPane); //places panes and shows to user
+        pane.setCenter(playedPane);  
+        pane.setBottom(humanPane); 
+
+        // show everything to the user
+        primaryStage.show();    
+    }
+   
+   public static void main(String[] args) //launches the program
+   {
+      launch(args);
+   }
+}

@@ -1,0 +1,379 @@
+//Arul Verma, The code creates a deck object and passes out unshuffled and shuffled hands to a number of players (inputted)
+//The hands are then revealed using tostring
+
+import java.util.Random;
+import java.util.Scanner;
+
+class CardIdentity {  //This is the base CardIdentity class. It is used as a super class for card. Its main focus is on the enum for suit and for storing the value of a card
+    public enum Suit{CLUBS,DIAMONDS,HEARTS,SPADES};
+    
+    private char value;
+    private Suit suit;
+    
+    public CardIdentity()
+    {
+      this.value = 'A';
+      this.suit = Suit.SPADES;
+    }
+
+    private boolean isValid(char value, Suit suit)
+    {
+      char[] charArray = {'A','2','3','4','5','6','7','8','9','T','J','Q','K'};
+      if (new String(charArray).indexOf(value) != -1) {
+        return true;
+      }
+      return false;
+    }
+
+    public boolean set(char value, Suit suit)
+    {
+      if(isValid(value,suit) == false) {return false;}
+      this.value = value;
+      this.suit = suit;
+      return true;
+    }
+
+    public char getval()
+    {
+      return this.value;
+    }
+
+    public Suit getsuit()
+    {
+      return this.suit;
+    }
+}
+
+class Card extends CardIdentity{ //this is the card class. It is used as a base for the deck and hand classes that are used later. Its main focus are on the tostring method which are used in the Hand tostring and on the value/suit storage
+    private boolean cardError;
+
+    public Card()
+    {
+      super();
+      this.cardError = false;
+    }
+
+    public Card(char value, Suit suit)
+    {
+      boolean ret = this.set(value,suit);
+      if(ret) {this.cardError = false;}
+      if(!ret) {this.set('A',Suit.SPADES); this.cardError = true;}
+    }
+    
+    public boolean set(char value, Suit suit)
+    {
+      boolean ret = super.set(value,suit);
+      if(ret) {this.cardError = false; return true;}
+      if(!ret) {return ret;}
+      return false;
+    }
+
+    public String tostring()
+    {
+      String house = "";
+      if(this.getsuit() == Suit.SPADES){house = "spades";}
+      if(this.getsuit() == Suit.CLUBS){house = "clubs";}
+      if(this.getsuit() == Suit.HEARTS){house = "hearts";}
+      if(this.getsuit() == Suit.DIAMONDS){house = "diamonds";}
+
+      if(this.cardError){return "[invalid]";}
+      return "" + this.getval() + " of " + house;
+    }
+
+    public boolean getcE()
+    {
+      return this.cardError;
+    }
+
+    public boolean equals(Card card)
+    {
+      if(this.getval() == card.getval())
+      {
+        if(this.getsuit() == card.getsuit())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+}
+
+class Hand { //This is the hand class. It stores the hands of the users and prints them using the tostring method. The key used functions are takeCards and toString (overriden).
+
+  public static int MAX_CARDS = 30;
+
+  private Card[] myCards;
+  private int numCards;
+
+  public Hand()
+  {
+    this.numCards = 0;
+    this.myCards = new Card[MAX_CARDS];
+  }
+
+  public void resetHand()
+  {
+    Card[] nCards = {};
+    this.myCards = nCards;
+    this.numCards = 0;
+  }
+
+  public boolean takeCards(Card card)
+  {
+    if(this.numCards < MAX_CARDS)
+    {
+      this.myCards[numCards] = card;
+      this.numCards += 1;
+      return true;
+    }
+    return false;
+  }
+
+  public Card playCard()
+  {
+    Card ret = this.myCards[numCards];
+    numCards -= 1;
+    return ret;
+  }
+
+  public String tostring()
+  {
+    String ret = "Hand = ( ";
+    for(int i = 0; i < numCards-1; i++)
+    {
+      ret += this.myCards[i].tostring();
+      ret += ", ";
+    }
+    ret += this.myCards[numCards-1].tostring();
+    ret += " ) \n";
+    return ret;
+  }
+
+  public int getnCards()
+  {
+    return this.numCards;
+  }
+
+  public Card inspectCard(int k)
+  {
+    if(k > this.numCards)
+    {
+      Card c = new Card();
+      return c;
+    }
+    return this.myCards[k];
+  }
+}
+
+class Deck { //This is the Deck class. At initialization, it checks to see if the static aMP is true to see if the masterpack has been allocated. If not, it allocates the MasterPack otherwise it skips the allocation. It then initializes the pack. The key used functions are shuffle, allocateMasterPack, dealCard, and InitializeMasterPack.
+
+  private final int MAX_PACKS = 6;
+  private final int CARDS_PER_PACK = 52;
+  private final int MAX_CARDS = MAX_PACKS * CARDS_PER_PACK;
+
+  private static Card[] masterPack;
+  private Card[] cards;
+  private int topcard;
+  private int numPacks;
+  private static boolean aMP;
+
+  private static void allocateMasterPack()
+  {
+    if(aMP == true) return;
+
+    char[] charArray = {'A','2','3','4','5','6','7','8','9','T','J','Q','K'};
+
+    masterPack = new Card[52];
+    for(int j = 0; j < 4; j++)
+    {
+      for(int k = 0;k < 13; k++)
+      {
+         if(j == 0){
+           masterPack[13*j + k] = new Card(charArray[k], CardIdentity.Suit.SPADES);
+         }
+         else if(j == 1){
+           masterPack[13*j + k] = new Card(charArray[k], CardIdentity.Suit.CLUBS);
+         }
+         else if(j == 2){
+           masterPack[13*j + k] = new Card(charArray[k], CardIdentity.Suit.HEARTS);
+         }
+         else{
+           masterPack[13*j + k] = new Card(charArray[k], CardIdentity.Suit.DIAMONDS);
+         }
+      }
+    }
+    aMP = true;
+  }
+
+  public boolean initializePack(int numPacks)
+  {
+    if(numPacks > this.MAX_PACKS){return false;}
+    this.numPacks = numPacks;
+
+    this.cards = new Card[52 * numPacks];
+
+    for(int i = 0; i < numPacks; i++)
+    {
+      for(int j = 0; j < 52; j++)
+      {
+        cards[52*i + j] = masterPack[j];
+      }
+    }
+    return true;
+  }
+
+  public Deck()
+  {
+    this.numPacks = 1;
+    allocateMasterPack();
+    initializePack(1);
+    this.topcard = (52 * this.numPacks) - 1;
+  }
+
+  public Deck(int numPacks)
+  {
+    this.numPacks = numPacks;
+    allocateMasterPack();
+    initializePack(numPacks);
+    this.topcard = (52 * this.numPacks) - 1;
+  }
+
+  public void shuffle(){ //shuffles the deck by selecting a random number from 0-51, swapping the card selected with the card at place 51. Then selects a random number from 0-50 and swaps the selected card with the card at place 50. This continues all the way until there are two cards left, where one is randomly selected to be in the 1st place and the other takes the 0th place
+
+    for(int i = (numPacks*52)-1; i > 0; i--)
+    {
+      int next = (int)(Math.random() * i);
+      Card temp = new Card(cards[i].getval(), cards[i].getsuit());
+      cards[i] = new Card(cards[next].getval(),cards[i].getsuit());
+      cards[next] = temp;
+    } 
+  }
+  
+  public Card dealCard()
+  {
+    Card c = new Card(this.cards[this.topcard].getval(), this.cards[this.topcard].getsuit());
+    this.topcard -= 1;
+    return c;
+  }
+
+  public int gettC()
+  {
+    return this.topcard;
+  }
+
+  public Card inspectCard(int k)
+  {
+    Card c;
+    try{
+      c = new Card(this.cards[k].getval(), this.cards[k].getsuit());
+    }
+    catch (IndexOutOfBoundsException e) {
+      c = new Card();
+    }
+    return c;
+  }
+}
+
+
+class Main { //This is the main. It takes input for number of players from the user, then creates a deck and passes out that many hands. It then reveals the hands, before resetting the hands and deck. Then the deck is shuffled, hands are distributed until there are no cards left, then the hands are revealed.
+  public static void main(String[] args) {
+    System.out.println("How many players are there? (Please pick a number from 1 to 10): ");
+    Scanner scanner = new Scanner(System.in);
+    String input = scanner.nextLine();
+    int num_players = Integer.parseInt(input);
+    while(num_players > 10 || num_players < 0)
+    {
+      System.out.println("Invalid number. How many players are there? (Please pick a number from 1 to 10): ");
+      scanner = new Scanner(System.in);
+      input = scanner.nextLine();
+      num_players = Integer.parseInt(input);
+    }
+
+
+
+
+    Deck deck = new Deck();
+    Hand[] hands = new Hand[num_players]; 
+    for(int i = 0; i < num_players; i++)
+    {
+      hands[i] = new Hand();
+    }
+
+    int cpr = 0;
+    while(deck.gettC() != -1)
+    {
+      hands[cpr].takeCards(deck.dealCard()); //take a card from deck and put it in hand
+      cpr+=1;
+      if(cpr == num_players)
+      {
+        cpr = 0;
+      }
+    }
+
+
+
+    System.out.println("Our unshuffled hands: \n"); //reveal of unshuffled hands
+    for(int i = 0; i < num_players; i++)
+    {
+      System.out.println(hands[i].tostring());
+    }
+
+    
+    hands = new Hand[num_players]; //can use resetHand() as well but this is much faster
+    for(int i = 0; i < num_players; i++)
+    {
+      hands[i] = new Hand();
+    }
+
+    deck = new Deck();
+    deck.shuffle();
+    cpr = 0;
+    while(deck.gettC() != -1)
+    {
+      hands[cpr].takeCards(deck.dealCard()); //take a card from deck and put it in hand
+      cpr+=1;
+      if(cpr == num_players)
+      {
+        cpr = 0;
+      }
+    }
+
+    System.out.println("Our shuffled hands: \n"); //revealing the shuffled hands
+    for(int i = 0; i < num_players; i++)
+    {
+      System.out.println(hands[i].tostring());
+    }
+
+  }
+}
+
+-----------------------------------
+/* Run Test 1:
+
+How many players are there? (Please pick a number from 1 to 10): 
+5
+Our unshuffled hands: 
+
+Hand = ( K of diamonds, 8 of diamonds, 3 of diamonds, J of hearts, 6 of hearts, A of hearts, 9 of clubs, 4 of clubs, Q of spades, 7 of spades, 2 of spades ) 
+
+Hand = ( Q of diamonds, 7 of diamonds, 2 of diamonds, T of hearts, 5 of hearts, K of clubs, 8 of clubs, 3 of clubs, J of spades, 6 of spades, A of spades ) 
+
+Hand = ( J of diamonds, 6 of diamonds, A of diamonds, 9 of hearts, 4 of hearts, Q of clubs, 7 of clubs, 2 of clubs, T of spades, 5 of spades ) 
+
+Hand = ( T of diamonds, 5 of diamonds, K of hearts, 8 of hearts, 3 of hearts, J of clubs, 6 of clubs, A of clubs, 9 of spades, 4 of spades ) 
+
+Hand = ( 9 of diamonds, 4 of diamonds, Q of hearts, 7 of hearts, 2 of hearts, T of clubs, 5 of clubs, K of spades, 8 of spades, 3 of spades ) 
+
+Our shuffled hands: 
+
+Hand = ( 8 of diamonds, K of diamonds, 3 of diamonds, Q of hearts, 9 of diamonds, 7 of hearts, 7 of clubs, 4 of hearts, T of diamonds, A of spades, J of spades ) 
+
+Hand = ( 8 of diamonds, 4 of diamonds, 9 of diamonds, 8 of hearts, Q of hearts, T of clubs, 9 of hearts, 9 of hearts, 5 of diamonds, T of clubs, 2 of spades ) 
+
+Hand = ( 5 of diamonds, 3 of diamonds, J of diamonds, 3 of diamonds, 8 of diamonds, K of diamonds, A of clubs, 6 of clubs, Q of spades, 5 of diamonds ) 
+
+Hand = ( 4 of diamonds, 4 of diamonds, Q of diamonds, J of hearts, 2 of hearts, 3 of clubs, K of diamonds, A of clubs, K of diamonds, A of clubs ) 
+
+Hand = ( 2 of diamonds, 6 of diamonds, 6 of hearts, 7 of hearts, T of diamonds, 6 of diamonds, 7 of clubs, 5 of spades, J of diamonds, 2 of diamonds )
+
+*/
