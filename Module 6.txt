@@ -1,3 +1,5 @@
+// The code takes an order input from the user and uses the input to create a Koch snowflake using the repeating concept of the snowflake. This snowflake is drawn and displayed to the user using javfx.
+
 package application;
 	
 import javafx.application.Application;
