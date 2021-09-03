@@ -1,3 +1,5 @@
+#The code uses a provided skeleton to implement soft deletion, traversal, and size counter into a n-nary Node tree
+
 interface Traverser<E>
 {
    public void visit(E x);
