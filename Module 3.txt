@@ -1,3 +1,5 @@
+// The code takes a barcode and generate a string from the barcode or can use a string and turn it into a barcode in a 2 dimensional array 
+
 import java.lang.Math;
 
 interface BarcodeIO {
