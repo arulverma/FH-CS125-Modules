@@ -1,3 +1,5 @@
+//The code creates a hand of cards for players using images and javafx so both the player and the computer can place cards down in a game. There is also a deck of cards so player can refresh their hand and to make sure that no card appears more than once throughout the "game"
+
 package application;
 
 import javafx.application.Application;
